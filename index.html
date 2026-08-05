@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ECO-MIZAN — Smart Environmental Action</title>
+    <!-- Google Font & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Leaflet CSS untuk peta -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* ---------- RESET & GLOBAL ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0d1f12;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .app {
+            max-width: 420px;
+            width: 100%;
+            height: 780px;
+            max-height: 95vh;
+            background: #f0f7f0;
+            border-radius: 36px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(46, 139, 87, 0.15);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        /* ---------- SCREENS ---------- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .screen-hidden {
+            transform: translateX(100%) scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .screen-visible {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ---------- SPLASH ---------- */
+        #splash {
+            background: linear-gradient(145deg, #0f2f18, #1a4a26);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+            padding: 40px 30px;
+            z-index: 10;
+        }
+        #splash .logo {
+            font-size: 72px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #66bb6a, #a5d6a7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulseLogo 2s infinite ease-in-out;
+        }
+        @keyframes pulseLogo {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        #splash h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        #splash .sub {
+            font-size: 15px;
+            opacity: 0.7;
+            margin-bottom: 30px;
+            max-width: 260px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #splash .btn-start {
+            background: #66bb6a;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #0d1f12;
+            box-shadow: 0 12px 30px rgba(102, 187, 106, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+        #splash .btn-start:hover {
+            transform: scale(1.02);
+        }
+
+        /* ---------- LOGIN ---------- */
+        #login {
+            background: #f0f7f0;
+            justify-content: center;
+            padding: 40px 28px;
+            z-index: 9;
+        }
+        #login .login-box {
+            background: #fff;
+            border-radius: 32px;
+            padding: 36px 24px 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04);
+        }
+        #login .login-box h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e3a1e;
+        }
+        #login .login-box .desc {
+            color: #6a8a6a;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        #login .login-box label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e3a1e;
+            display: block;
+            margin-bottom: 4px;
+        }
+        #login .login-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1.5px solid #e2ede2;
+            background: #f8fbf8;
+            font-size: 15px;
+            font-weight: 500;
+            color: #1e3a1e;
+            transition: border 0.2s;
+            margin-bottom: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+        #login .login-box input:focus {
+            border-color: #2e7d32;
+            outline: none;
+        }
+        #login .login-box .btn-login {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            background: linear-gradient(145deg, #1e4d2b, #143d1e);
+            color: #fff;
+            font-weight: 700;
+            font-size: 17px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 24px rgba(30, 77, 43, 0.2);
+            margin-top: 8px;
+        }
+        #login .login-box .btn-login:hover {
+            transform: scale(0.98);
+        }
+
+        /* ---------- MAIN APP ---------- */
+        #main {
+            background: #f0f7f0;
+            z-index: 8;
+            padding-bottom: 0;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .main-header {
+            background: linear-gradient(145deg, #1e4d2b, #0f2f18);
+            padding: 16px 20px 14px;
+            color: #fff;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .main-header::after {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #66bb6a, #2e7d32);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+        .user-text .badge {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 2px 10px;
+            border-radius: 30px;
+            display: inline-block;
+            backdrop-filter: blur(4px);
+        }
+        .user-text .name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 1px;
+            line-height: 1.2;
+        }
+        .user-text .nim {
+            font-size: 10px;
+            opacity: 0.6;
+        }
+        .header-action {
+            display: flex;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 17px;
+            position: relative;
+            z-index: 2;
+        }
+        .header-action i {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .header-action i:hover {
+            color: #fff;
+        }
+
+        /* STATS */
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        .stat-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            padding: 10px 12px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.10);
+        }
+        .stat-card .label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.6;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .stat-card .value {
+            font-size: 22px;
+            font-weight: 800;
+            margin-top: 1px;
+            line-height: 1.1;
+        }
+        .stat-card .sub {
+            font-size: 10px;
+            opacity: 0.6;
+        }
+        .stat-card .badge-green {
+            background: rgba(76, 175, 80, 0.25);
+            padding: 1px 8px;
+            border-radius: 30px;
+            font-size: 9px;
+            font-weight: 600;
+            color: #a5d6a7;
+            display: inline-block;
+            margin-top: 2px;
+        }
+        .stat-card.point .value {
+            color: #ffd54f;
+        }
+        .stat-card.eai .value {
+            color: #81c784;
+        }
+
+        /* LEVEL BANNER */
+        .level-banner {
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(6px);
+            border-radius: 40px;
+            padding: 8px 14px 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+        .level-banner .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .level-banner .icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ffb300, #ff8f00);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e2a1e;
+            font-size: 14px;
+        }
+        .level-banner .level-label {
+            font-size: 9px;
+            opacity: 0.6;
+            font-weight: 500;
+        }
+        .level-banner .level-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+        }
+        .level-banner .level-badge {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #a5d6a7;
+        }
+
+        /* MAIN CONTENT SCROLL */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px 10px;
+            scroll-behavior: smooth;
+        }
+        .main-content::-webkit-scrollbar {
+            width: 3px;
+        }
+        .main-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .main-content::-webkit-scrollbar-thumb {
+            background: #a0c0a0;
+            border-radius: 10px;
+        }
+
+        /* CARDS */
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 14px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            margin-bottom: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e3a1e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .card-title i {
+            color: #2e7d32;
+        }
+
+        /* SCAN */
+        .scan-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .scan-btn {
+            flex: 1;
+            min-width: 100px;
+            background: linear-gradient(145deg, #1e4d2b, #143d1e);
+            border: none;
+            border-radius: 14px;
+            padding: 12px 8px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(30, 77, 43, 0.2);
+            font-family: 'Inter', sans-serif;
+        }
+        .scan-btn:hover {
+            transform: scale(0.97);
+        }
+        .scan-btn.secondary {
+            background: #eef5ee;
+            color: #1e3a1e;
+            box-shadow: none;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .scan-btn.secondary:hover {
+            background: #e2ede2;
+        }
+        .scan-hint {
+            font-size: 10px;
+            color: #5a7a5a;
+            margin-top: 8px;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* HISTORY */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .more-link {
+            font-size: 11px;
+            font-weight: 600;
+            color: #2e7d32;
+            cursor: pointer;
+            background: rgba(46, 125, 50, 0.08);
+            padding: 3px 12px;
+            border-radius: 30px;
+            transition: background 0.2s;
+        }
+        .more-link:hover {
+            background: rgba(46, 125, 50, 0.15);
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f6f0;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-item .desc {
+            font-size: 12px;
+            font-weight: 500;
+            color: #1e2e1e;
+        }
+        .history-item .detail {
+            font-size: 10px;
+            color: #6a8a6a;
+            margin-top: 1px;
+        }
+        .history-item .right {
+            font-weight: 700;
+            font-size: 13px;
+            color: #2e7d32;
+            background: rgba(46, 125, 50, 0.06);
+            padding: 3px 10px;
+            border-radius: 30px;
+        }
+        .history-item .right .plus {
+            color: #43a047;
+        }
+
+        /* REWARD / MARKETPLACE */
+        .reward-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+        .reward-card {
+            background: #f8fbf8;
+            border-radius: 14px;
+            padding: 10px 6px;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .reward-card:hover {
+            background: #f0f7f0;
+            transform: translateY(-2px);
+        }
+        .reward-card .points {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2e7d32;
+        }
+        .reward-card .points small {
+            font-size: 10px;
+            font-weight: 400;
+            color: #5a7a5a;
+        }
+        .reward-card .reward-name {
+            font-size: 10px;
+            font-weight: 600;
+            color: #1e3a1e;
+            margin-top: 3px;
+            line-height: 1.3;
+        }
+        .reward-card .reward-icon {
+            font-size: 20px;
+            color: #2e7d32;
+            margin-bottom: 2px;
+        }
+        .reward-card .stock {
+            font-size: 8px;
+            color: #8a9a8a;
+            margin-top: 2px;
+        }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 10px;
+            border-radius: 0 0 28px 28px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            font-size: 9px;
+            font-weight: 500;
+            color: #8a9a8a;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 30px;
+            background: transparent;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: color 0.2s;
+        }
+        .nav-item i {
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+        .nav-item.active {
+            color: #1e4d2b;
+        }
+        .nav-item.active i {
+            transform: scale(1.05);
+        }
+        .nav-item:hover {
+            color: #1e4d2b;
+        }
+        .nav-item .badge-nav {
+            background: #2e7d32;
+            color: #fff;
+            font-size: 8px;
+            border-radius: 30px;
+            padding: 1px 6px;
+            margin-top: 1px;
+        }
+
+        /* CHAT FAB */
+        .chat-fab {
+            position: absolute;
+            bottom: 80px;
+            right: 14px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, #1e4d2b, #0f2f18);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 22px;
+            box-shadow: 0 8px 28px rgba(30, 77, 43, 0.35);
+            cursor: pointer;
+            z-index: 20;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .chat-fab:hover {
+            transform: scale(1.05);
+        }
+        .chat-fab .badge-chat {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ff5252;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #f0f7f0;
+        }
+
+        /* CHAT MODAL */
+        .chat-modal {
+            position: absolute;
+            bottom: 90px;
+            right: 14px;
+            width: 280px;
+            max-width: calc(100% - 36px);
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            z-index: 25;
+            padding: 14px 14px 10px;
+            display: none;
+            flex-direction: column;
+            max-height: 360px;
+        }
+        .chat-modal.open {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #f0f6f0;
+        }
+        .chat-header span {
+            font-weight: 700;
+            color: #1e3a1e;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-header .close-chat {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #8a9a8a;
+            cursor: pointer;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 200px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .chat-msg {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            max-width: 85%;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .chat-msg.bot {
+            background: #eef5ee;
+            color: #1e3a1e;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-msg.user {
+            background: #1e4d2b;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-input-row {
+            display: flex;
+            gap: 6px;
+            border-top: 1px solid #f0f6f0;
+            padding-top: 8px;
+        }
+        .chat-input-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 30px;
+            border: 1.5px solid #e2ede2;
+            background: #f8fbf8;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+        }
+        .chat-input-row input:focus {
+            border-color: #2e7d32;
+        }
+        .chat-input-row button {
+            background: #1e4d2b;
+            border: none;
+            color: #fff;
+            padding: 0 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* TOAST */
+        .toast {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: #1e3a1e;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+            z-index: 30;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* ============================================================ */
+        /* PAGE: LEADERBOARD */
+        /* ============================================================ */
+        .lb-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .lb-tab {
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #eef5ee;
+            color: #5a7a5a;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .lb-tab.active {
+            background: #1e4d2b;
+            color: #fff;
+        }
+        .lb-tab:hover:not(.active) {
+            background: #dde8dd;
+        }
+        .lb-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 4px;
+            border-bottom: 1px solid #f0f6f0;
+        }
+        .lb-item:last-child {
+            border-bottom: none;
+        }
+        .lb-rank {
+            width: 26px;
+            height: 26px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            color: #fff;
+            background: #c0d0c0;
+            flex-shrink: 0;
+        }
+        .lb-rank.gold {
+            background: #ffb300;
+        }
+        .lb-rank.silver {
+            background: #bdbdbd;
+        }
+        .lb-rank.bronze {
+            background: #cd7f32;
+        }
+        .lb-rank.top {
+            background: #2e7d32;
+        }
+        .lb-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 30px;
+            background: #dde8dd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2e7d32;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .lb-info {
+            flex: 1;
+        }
+        .lb-info .name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e3a1e;
+        }
+        .lb-info .detail {
+            font-size: 10px;
+            color: #6a8a6a;
+        }
+        .lb-points {
+            font-weight: 700;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+
+        /* ============================================================ */
+        /* PAGE: MARKETPLACE */
+        /* ============================================================ */
+        .marketplace-category {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e3a1e;
+            margin: 12px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #e2ede2;
+        }
+        .marketplace-category:first-of-type {
+            margin-top: 0;
+        }
+
+        /* ============================================================ */
+        /* PAGE: WASTE INDEX (MAP) */
+        /* ============================================================ */
+        #mapContainer {
+            height: 220px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2ede2;
+            margin-bottom: 12px;
+            background: #e8f0e8;
+        }
+        .waste-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .waste-stat-item {
+            background: #f8fbf8;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+        .waste-stat-item .num {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e4d2b;
+        }
+        .waste-stat-item .label {
+            font-size: 10px;
+            color: #6a8a6a;
+        }
+        .waste-location-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f6f0;
+            font-size: 12px;
+        }
+        .waste-location-item:last-child {
+            border-bottom: none;
+        }
+        .waste-location-item .loc-name {
+            font-weight: 500;
+            color: #1e3a1e;
+        }
+        .waste-location-item .loc-waste {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        .waste-location-item .loc-bar {
+            width: 60px;
+            height: 6px;
+            background: #e2ede2;
+            border-radius: 10px;
+            overflow: hidden;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        .waste-location-item .loc-bar .fill {
+            height: 100%;
+            background: #2e7d32;
+            border-radius: 10px;
+        }
+
+        /* ============================================================ */
+        /* PAGE: ADMIN DASHBOARD */
+        /* ============================================================ */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .admin-stat {
+            background: #fff;
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+        .admin-stat .num {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e4d2b;
+        }
+        .admin-stat .label {
+            font-size: 10px;
+            color: #6a8a6a;
+            margin-top: 2px;
+        }
+        .admin-stat .icon {
+            font-size: 22px;
+            color: #2e7d32;
+            margin-bottom: 4px;
+        }
+
+        .admin-table {
+            width: 100%;
+            font-size: 11px;
+            border-collapse: collapse;
+        }
+        .admin-table th {
+            text-align: left;
+            padding: 6px 4px;
+            color: #6a8a6a;
+            font-weight: 600;
+            border-bottom: 1px solid #e2ede2;
+        }
+        .admin-table td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #f0f6f0;
+            color: #1e3a1e;
+        }
+        .admin-table .status {
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        .admin-table .status.active {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .admin-table .status.inactive {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        /* ============================================================ */
+        /* PAGE: PROFIL (User Dashboard) */
+        /* ============================================================ */
+        .profile-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px 16px;
+            text-align: center;
+            margin-bottom: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+        .profile-card .big-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #66bb6a, #2e7d32);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #fff;
+            margin: 0 auto 10px;
+            box-shadow: 0 8px 24px rgba(46, 125, 50, 0.2);
+        }
+        .profile-card .p-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e3a1e;
+        }
+        .profile-card .p-nim {
+            font-size: 13px;
+            color: #6a8a6a;
+        }
+        .profile-card .p-badge {
+            display: inline-block;
+            margin-top: 6px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .profile-menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .profile-menu-item {
+            background: #fff;
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .profile-menu-item:hover {
+            background: #f8fbf8;
+            transform: translateY(-2px);
+        }
+        .profile-menu-item i {
+            font-size: 20px;
+            color: #2e7d32;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .profile-menu-item span {
+            font-size: 11px;
+            font-weight: 500;
+            color: #1e3a1e;
+        }
+
+        /* ============================================================ */
+        /* RESPONSIVE */
+        /* ============================================================ */
+        @media (max-width: 420px) {
+            .app {
+                height: 95vh;
+                max-height: 800px;
+                border-radius: 28px;
+            }
+            .stat-card .value {
+                font-size: 19px;
+            }
+            .user-text .name {
+                font-size: 14px;
+            }
+            .scan-btn {
+                font-size: 11px;
+                padding: 10px 6px;
+            }
+            .reward-card .points {
+                font-size: 14px;
+            }
+            .bottom-nav {
+                padding: 4px 0 8px;
+            }
+            .nav-item {
+                padding: 2px 8px;
+                font-size: 8px;
+            }
+            .nav-item i {
+                font-size: 16px;
+            }
+            .chat-modal {
+                width: 250px;
+                right: 10px;
+                bottom: 80px;
+            }
+            .admin-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .waste-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ---------- SCROLLBAR ---------- */
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a0c0a0;
+            border-radius: 10px;
+        }
+
+        /* ---------- ANIMATION ---------- */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .screen-visible {
+            animation: fadeUp 0.5s ease forwards;
+        }
+
+        /* ---------- BADGE ADMIN ---------- */
+        .admin-badge {
+            background: #ff8f00;
+            color: #fff;
+            font-size: 8px;
+            padding: 1px 8px;
+            border-radius: 30px;
+            margin-left: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================ -->
+    <!-- APP -->
+    <!-- ============================================================ -->
+    <div class="app" id="app">
+
+        <!-- TOAST -->
+        <div class="toast" id="toast"></div>
+
+        <!-- ==================== SPLASH ==================== -->
+        <div class="screen screen-visible" id="splash">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                <div class="logo"><i class="fas fa-leaf"></i></div>
+                <h1>ECO-MIZAN</h1>
+                <div class="sub">Smart Environmental Action System<br />Berbasis Ekoteologi Islam</div>
+                <button class="btn-start" id="btnSplashStart">
+                    <i class="fas fa-arrow-right"></i> Mulai
+                </button>
+                <div style="margin-top:24px; font-size:10px; opacity:0.25;">v3.0 · SDGs 12 &amp; 13</div>
+            </div>
+        </div>
+
+        <!-- ==================== LOGIN ==================== -->
+        <div class="screen screen-hidden" id="login">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; padding:20px 24px;">
+                <div class="login-box">
+                    <h2>👋 Selamat Datang</h2>
+                    <div class="desc">Masuk untuk mulai aksi lingkunganmu</div>
+                    <label for="loginNama">Nama Lengkap</label>
+                    <input type="text" id="loginNama" placeholder="Contoh: Inayah Azzahra" value="Inayah Azzahra" />
+                    <label for="loginNim">NIM / NISN</label>
+                    <input type="text" id="loginNim" placeholder="Masukkan NIM atau NISN" value="12345678" />
+                    <label for="loginRole">Peran</label>
+                    <select id="loginRole" style="width:100%;padding:14px 16px;border-radius:16px;border:1.5px solid #e2ede2;background:#f8fbf8;font-size:15px;font-family:'Inter',sans-serif;margin-bottom:16px;color:#1e3a1e;">
+                        <option value="user">Mahasiswa</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button class="btn-login" id="btnLogin">
+                        <i class="fas fa-sign-in-alt"></i> Masuk ke ECO-MIZAN
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MAIN APP ==================== -->
+        <div class="screen screen-hidden" id="main">
+
+            <!-- ======== HEADER ======== -->
+            <div class="main-header">
+                <div class="header-top">
+                    <div class="user-info">
+                        <div class="avatar" id="avatarBtn"><i class="fas fa-seedling"></i></div>
+                        <div class="user-text">
+                            <span class="badge"><i class="fas fa-leaf"></i> Mahasiswa ECO-MIZAN <span id="adminBadgeHeader" style="display:none;" class="admin-badge">Admin</span></span>
+                            <span class="name" id="mainUserName">Inayah Azzahra</span>
+                            <span class="nim" id="mainUserNim">NIM: 12345678</span>
+                        </div>
+                    </div>
+                    <div class="header-action">
+                        <i class="fas fa-bell" onclick="showToast('🔔 Notifikasi')"></i>
+                        <i class="fas fa-ellipsis-v" onclick="showToast('⚙️ Pengaturan')"></i>
+                    </div>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card point" id="pointCard">
+                        <div class="label"><i class="fas fa-coins"></i> Eco Point</div>
+                        <div class="value" id="ecoPoint">1,250</div>
+                        <div class="sub">+18 poin hari ini</div>
+                    </div>
+                    <div class="stat-card eai" id="eaiCard">
+                        <div class="label"><i class="fas fa-chart-line"></i> EAI</div>
+                        <div class="value" id="eaiScore">85</div>
+                        <div class="sub">Sangat Baik</div>
+                        <span class="badge-green"><i class="fas fa-arrow-up"></i> +3%</span>
+                    </div>
+                </div>
+
+                <div class="level-banner" id="levelBanner">
+                    <div class="left">
+                        <div class="icon"><i class="fas fa-crown"></i></div>
+                        <div>
+                            <div class="level-label">Kuis setor · Level</div>
+                            <div class="level-name" id="levelName">Lv. 7 — Penjaga Bumi</div>
+                        </div>
+                    </div>
+                    <div class="level-badge" id="levelBadge">🌱 1,250 pts</div>
+                </div>
+            </div>
+
+            <!-- ======== CONTENT ======== -->
+            <div class="main-content" id="mainContent">
+
+                <!-- ===== PAGE: BERANDA (default) ===== -->
+                <div id="pageBeranda">
+                    <!-- SCAN -->
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-qrcode"></i> Scan &amp; Setor</div>
+                        <div class="scan-actions">
+                            <button class="scan-btn" id="scanQrBtn"><i class="fas fa-camera"></i> Scan QR</button>
+                            <button class="scan-btn secondary" id="manualNimBtn"><i class="fas fa-keyboard"></i> Input NIM</button>
+                        </div>
+                        <div class="scan-hint"><i class="fas fa-map-pin"></i> Cari mesin pemukaran di dekat Anda.</div>
+                    </div>
+
+                    <!-- RIWAYAT -->
+                    <div class="card">
+                        <div class="history-header">
+                            <div class="card-title" style="margin-bottom:0;"><i class="fas fa-history"></i> Riwayat Setor</div>
+                            <span class="more-link" id="moreHistory">More <i class="fas fa-chevron-right" style="font-size:10px;"></i></span>
+                        </div>
+                        <div id="historyList">
+                            <div class="history-item">
+                                <div><div class="desc">Botol PET 600ml (3) · 1,5L (1)</div><div class="detail"><i class="far fa-calendar-alt"></i> Hari ini, 14:30</div></div>
+                                <div class="right"><span class="plus">+10</span></div>
+                            </div>
+                            <div class="history-item">
+                                <div><div class="desc">Kaleng (2) · Kertas 1kg</div><div class="detail"><i class="far fa-calendar-alt"></i> Hari ini, 10:15</div></div>
+                                <div class="right"><span class="plus">+18</span></div>
+                            </div>
+                            <div class="history-item">
+                                <div><div class="desc">Botol PET 600ml (2)</div><div class="detail"><i class="far fa-calendar-alt"></i> Kemarin, 16:20</div></div>
+                                <div class="right"><span class="plus">+6</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REWARD PREVIEW -->
+                    <div class="card">
+                        <div class="history-header">
+                            <div class="card-title" style="margin-bottom:0;"><i class="fas fa-gift"></i> Reward Populer</div>
+                            <span class="more-link" onclick="navigateTo('marketplace')">Lihat semua</span>
+                        </div>
+                        <div class="reward-grid" id="rewardPreview">
+                            <div class="reward-card" data-points="100" onclick="showToast('🎁 Tukar Voucher Kantin')">
+                                <div class="reward-icon"><i class="fas fa-ticket-alt"></i></div>
+                                <div class="points">100 <small>pts</small></div>
+                                <div class="reward-name">Voucher Kantin</div>
+                            </div>
+                            <div class="reward-card" data-points="200" onclick="showToast('🌱 Tukar Bibit Mangrove')">
+                                <div class="reward-icon"><i class="fas fa-seedling"></i></div>
+                                <div class="points">200 <small>pts</small></div>
+                                <div class="reward-name">Bibit Mangrove</div>
+                            </div>
+                            <div class="reward-card" data-points="300" onclick="showToast('📜 Tukar Sertifikat')">
+                                <div class="reward-icon"><i class="fas fa-certificate"></i></div>
+                                <div class="points">300 <small>pts</small></div>
+                                <div class="reward-name">Sertifikat Green</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QUICK ACCESS -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;">
+                        <div class="profile-menu-item" onclick="navigateTo('marketplace')" style="background:#fff;border-radius:14px;padding:10px;text-align:center;cursor:pointer;">
+                            <i class="fas fa-store" style="font-size:18px;color:#2e7d32;"></i>
+                            <span style="font-size:10px;font-weight:500;color:#1e3a1e;display:block;">Marketplace</span>
+                        </div>
+                        <div class="profile-menu-item" onclick="navigateTo('wasteIndex')" style="background:#fff;border-radius:14px;padding:10px;text-align:center;cursor:pointer;">
+                            <i class="fas fa-map-marked-alt" style="font-size:18px;color:#2e7d32;"></i>
+                            <span style="font-size:10px;font-weight:500;color:#1e3a1e;display:block;">Indeks Sampah</span>
+                        </div>
+                        <div class="profile-menu-item" onclick="navigateTo('leaderboard')" style="background:#fff;border-radius:14px;padding:10px;text-align:center;cursor:pointer;">
+                            <i class="fas fa-trophy" style="font-size:18px;color:#2e7d32;"></i>
+                            <span style="font-size:10px;font-weight:500;color:#1e3a1e;display:block;">Leaderboard</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== PAGE: LEADERBOARD ===== -->
+                <div id="pageLeaderboard" style="display:none;">
+                    <div class="card" style="margin-bottom:10px;">
+                        <div class="card-title"><i class="fas fa-trophy"></i> Leaderboard</div>
+                        <div class="lb-tabs">
+                            <button class="lb-tab active" data-lb="nasional">Nasional</button>
+                            <button class="lb-tab" data-lb="univ">Universitas</button>
+                            <button class="lb-tab" data-lb="fakultas">Fakultas</button>
+                            <button class="lb-tab" data-lb="prodi">Prodi</button>
+                        </div>
+                        <div id="lbContent"></div>
+                    </div>
+                </div>
+
+                <!-- ===== PAGE: MARKETPLACE ===== -->
+                <div id="pageMarketplace" style="display:none;">
+                    <div class="card" style="margin-bottom:10px;">
+                        <div class="card-title"><i class="fas fa-store"></i> Marketplace ECO-MIZAN</div>
+                        <div style="font-size:12px;color:#6a8a6a;margin-bottom:12px;">Tukarkan poinmu dengan berbagai hadiah!</div>
+
+                        <div class="marketplace-category">🎫 Voucher &amp; Digital</div>
+                        <div class="reward-grid">
+                            <div class="reward-card" onclick="tradeReward('Voucher Shopee Rp10k', 150)">
+                                <div class="reward-icon"><i class="fas fa-shopping-bag"></i></div>
+                                <div class="points">150 <small>pts</small></div>
+                                <div class="reward-name">Voucher Shopee Rp10k</div>
+                                <div class="stock">Tersedia 25</div>
+                            </div>
+                            <div class="reward-card" onclick="tradeReward('Voucher GoFood Rp15k', 200)">
+                                <div class="reward-icon"><i class="fas fa-utensils"></i></div>
+                                <div class="points">200 <small>pts</small></div>
+                                <div class="reward-name">Voucher GoFood Rp15k</div>
+                                <div class="stock">Tersedia 12</div>
+                            </div>
+                            <div class="reward-card" onclick="tradeReward('Pulsa Rp10k', 120)">
+                                <div class="reward-icon"><i class="fas fa-mobile-alt"></i></div>
+                                <div class="points">120 <small>pts</small></div>
+                                <div class="reward-name">Pulsa Rp10k</div>
+                                <div class="stock">Tersedia 30</div>
+                            </div>
+                        </div>
+
+                        <div class="marketplace-category">🛍️ Merchandise</div>
+                        <div class="reward-grid">
+                            <div class="reward-card" onclick="tradeReward('Totebag ECO-MIZAN', 250)">
+                                <div class="reward-icon"><i class="fas fa-shopping-bag"></i></div>
+                                <div class="points">250 <small>pts</small></div>
+                                <div class="reward-name">Totebag ECO-MIZAN</div>
+                                <div class="stock">Tersedia 18</div>
+                            </div>
+                            <div class="reward-card" onclick="tradeReward('Gelang Ramah Lingkungan', 180)">
+                                <div class="reward-icon"><i class="fas fa-hand-peace"></i></div>
+                                <div class="points">180 <small>pts</small></div>
+                                <div class="reward-name">Gelang Ramah Lingkungan</div>
+                                <div class="stock">Tersedia 22</div>
+                            </div>
+                            <div class="reward-card" onclick="tradeReward('Sticker Set ECO', 80)">
+                                <div class="reward-icon"><i class="fas fa-sticky-note"></i></div>
+                                <div class="points">80 <small>pts</small></div>
+                                <div class="reward-name">Sticker Set ECO</div>
+                                <div class="stock">Tersedia 40</div>
+                            </div>
+                        </div>
+
+                        <div class="marketplace-category">♻️ Produk Daur Ulang (Karya Mahasiswa)</div>
+                        <div class="reward-grid">
+                            <div class="reward-card" onclick="tradeReward('Tas Anyaman Plastik Daur Ulang', 300)">
+                                <div class="reward-icon"><i class="fas fa-bag-shopping"></i></div>
+                                <div class="points">300 <small>pts</small></div>
+                                <div class="reward-name">Tas Anyaman Plastik</div>
+                                <div class="stock">Karya: Ahmad F.</div>
+                            </div>
+                            <div class="reward-card" onclick="tradeReward('Dompet Kertas Daur Ulang', 220)">
+                                <div class="reward-icon"><i class="fas fa-wallet"></i></div>
+                                <div class="points">220 <small>pts</small></div>
+                                <div class="reward-name">Dompet Kertas Daur Ulang</div>
+                                <div class="stock">Karya: Siti R.</div>
+                            </div>
+                            <div class="reward-card" onclick="tradeReward('Hiasan Botol Kaca', 160)">
+                                <div class="reward-icon"><i class="fas fa-glass-whiskey"></i></div>
+                                <div class="points">160 <small>pts</small></div>
+                                <div class="reward-name">Hiasan Botol Kaca</div>
+                                <div class="stock">Karya: Budi S.</div>
+                            </div>
+                            <div class="reward-card" onclick="tradeReward('Gantungan Kunci Eko', 100)">
+                                <div class="reward-icon"><i class="fas fa-key"></i></div>
+                                <div class="points">100 <small>pts</small></div>
+                                <div class="reward-name">Gantungan Kunci Eko</div>
+                                <div class="stock">Karya: Dian P.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== PAGE: WASTE INDEX ===== -->
+                <div id="pageWasteIndex" style="display:none;">
+                    <div class="card" style="margin-bottom:10px;">
+                        <div class="card-title"><i class="fas fa-map-marked-alt"></i> Indeks Sampah &amp; Smart Bin</div>
+
+                        <div id="mapContainer"></div>
+
+                        <div class="waste-stats">
+                            <div class="waste-stat-item">
+                                <div class="num" id="totalWaste">2,847</div>
+                                <div class="label">Total Sampah (kg)</div>
+                            </div>
+                            <div class="waste-stat-item">
+                                <div class="num" id="recycledWaste">1,203</div>
+                                <div class="label">Terdaur Ulang (kg)</div>
+                            </div>
+                            <div class="waste-stat-item">
+                                <div class="num" id="wasteReduction">42%</div>
+                                <div class="label">Reduksi Sampah</div>
+                            </div>
+                            <div class="waste-stat-item">
+                                <div class="num" id="smartBinCount">12</div>
+                                <div class="label">Smart Bin Aktif</div>
+                            </div>
+                        </div>
+
+                        <div style="font-size:13px;font-weight:600;color:#1e3a1e;margin-bottom:6px;">📍 Lokasi dengan Sampah Terbanyak</div>
+                        <div id="wasteLocations">
+                            <div class="waste-location-item">
+                                <span class="loc-name">Gedung Rektorat</span>
+                                <span><span class="loc-waste">420 kg</span> <span class="loc-bar"><span class="fill" style="width:100%;"></span></span></span>
+                            </div>
+                            <div class="waste-location-item">
+                                <span class="loc-name">Fakultas Teknik</span>
+                                <span><span class="loc-waste">380 kg</span> <span class="loc-bar"><span class="fill" style="width:90%;"></span></span></span>
+                            </div>
+                            <div class="waste-location-item">
+                                <span class="loc-name">Asrama Mahasiswa</span>
+                                <span><span class="loc-waste">310 kg</span> <span class="loc-bar"><span class="fill" style="width:74%;"></span></span></span>
+                            </div>
+                            <div class="waste-location-item">
+                                <span class="loc-name">Fakultas Ekonomi</span>
+                                <span><span class="loc-waste">270 kg</span> <span class="loc-bar"><span class="fill" style="width:64%;"></span></span></span>
+                            </div>
+                            <div class="waste-location-item">
+                                <span class="loc-name">Perpustakaan Pusat</span>
+                                <span><span class="loc-waste">190 kg</span> <span class="loc-bar"><span class="fill" style="width:45%;"></span></span></span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:10px;font-size:11px;color:#6a8a6a;display:flex;gap:12px;flex-wrap:wrap;">
+                            <span><i class="fas fa-circle" style="color:#2e7d32;font-size:8px;"></i> Smart Bin Aktif</span>
+                            <span><i class="fas fa-circle" style="color:#ffb300;font-size:8px;"></i> Hampir Penuh</span>
+                            <span><i class="fas fa-circle" style="color:#e53935;font-size:8px;"></i> Perlu Dikosongkan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== PAGE: ADMIN DASHBOARD ===== -->
+                <div id="pageAdmin" style="display:none;">
+                    <div class="card" style="margin-bottom:10px;">
+                        <div class="card-title"><i class="fas fa-user-shield"></i> Dashboard Admin <span class="admin-badge">Admin</span></div>
+                        <div style="font-size:12px;color:#6a8a6a;margin-bottom:12px;">Ringkasan data pengguna dan sampah</div>
+
+                        <div class="admin-grid">
+                            <div class="admin-stat">
+                                <div class="icon"><i class="fas fa-users"></i></div>
+                                <div class="num">1,284</div>
+                                <div class="label">Total Pengguna</div>
+                            </div>
+                            <div class="admin-stat">
+                                <div class="icon"><i class="fas fa-recycle"></i></div>
+                                <div class="num">8,432</div>
+                                <div class="label">Total Setoran</div>
+                            </div>
+                            <div class="admin-stat">
+                                <div class="icon"><i class="fas fa-coins"></i></div>
+                                <div class="num">142,500</div>
+                                <div class="label">Total Poin Diberikan</div>
+                            </div>
+                            <div class="admin-stat">
+                                <div class="icon"><i class="fas fa-gift"></i></div>
+                                <div class="num">324</div>
+                                <div class="label">Reward Ditukar</div>
+                            </div>
+                        </div>
+
+                        <div style="font-size:13px;font-weight:600;color:#1e3a1e;margin-bottom:6px;">📋 Setoran Terbaru</div>
+                        <table class="admin-table">
+                            <thead><tr><th>Nama</th><th>Jenis</th><th>Poin</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr><td>Inayah A.</td><td>Botol PET</td><td>+10</td><td><span class="status active">Terverifikasi</span></td></tr>
+                                <tr><td>Budi S.</td><td>Kertas</td><td>+8</td><td><span class="status active">Terverifikasi</span></td></tr>
+                                <tr><td>Citra P.</td><td>Kaleng</td><td>+6</td><td><span class="status inactive">Pending</span></td></tr>
+                                <tr><td>Dian R.</td><td>Plastik</td><td>+4</td><td><span class="status active">Terverifikasi</span></td></tr>
+                            </tbody>
+                        </table>
+
+                        <div style="margin-top:12px;font-size:12px;color:#6a8a6a;">
+                            <i class="fas fa-chart-bar"></i> Minggu ini: +1,240 setoran | +18,500 poin
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== PAGE: PROFIL (User Dashboard) ===== -->
+                <div id="pageProfil" style="display:none;">
+                    <div class="profile-card">
+                        <div class="big-avatar"><i class="fas fa-seedling"></i></div>
+                        <div class="p-name" id="profileName">Inayah Azzahra</div>
+                        <div class="p-nim" id="profileNim">NIM: 12345678</div>
+                        <div class="p-badge"><i class="fas fa-leaf"></i> Penjaga Bumi · Lv.7</div>
+                        <div style="margin-top:8px;display:flex;justify-content:center;gap:20px;">
+                            <span style="font-size:13px;font-weight:700;color:#2e7d32;"><i class="fas fa-coins"></i> <span id="profilePoints">1,250</span></span>
+                            <span style="font-size:13px;font-weight:700;color:#2e7d32;"><i class="fas fa-chart-line"></i> EAI <span id="profileEai">85</span></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-menu">
+                        <div class="profile-menu-item" onclick="navigateTo('marketplace')">
+                            <i class="fas fa-store"></i>
+                            <span>Marketplace</span>
+                        </div>
+                        <div class="profile-menu-item" onclick="navigateTo('wasteIndex')">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <span>Indeks Sampah</span>
+                        </div>
+                        <div class="profile-menu-item" onclick="navigateTo('leaderboard')">
+                            <i class="fas fa-trophy"></i>
+                            <span>Leaderboard</span>
+                        </div>
+                        <div class="profile-menu-item" id="adminMenuBtn" style="display:none;" onclick="navigateTo('admin')">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Dashboard Admin</span>
+                        </div>
+                        <div class="profile-menu-item" onclick="showToast('📊 Statistik pengguna')">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Statistik</span>
+                        </div>
+                        <div class="profile-menu-item" onclick="showToast('⚙️ Pengaturan akun')">
+                            <i class="fas fa-cog"></i>
+                            <span>Pengaturan</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /main-content -->
+
+            <!-- ======== BOTTOM NAV ======== -->
+            <div class="bottom-nav">
+                <button class="nav-item active" data-page="beranda" onclick="navigateTo('beranda')">
+                    <i class="fas fa-home"></i> Beranda
+                </button>
+                <button class="nav-item" data-page="scan" onclick="navigateTo('scan')">
+                    <i class="fas fa-camera"></i> Scan
+                    <span class="badge-nav">QR</span>
+                </button>
+                <button class="nav-item" data-page="riwayat" onclick="navigateTo('riwayat')">
+                    <i class="fas fa-list-ul"></i> Riwayat
+                </button>
+                <button class="nav-item" data-page="leaderboard" onclick="navigateTo('leaderboard')">
+                    <i class="fas fa-trophy"></i> Leaderboard
+                </button>
+                <button class="nav-item" data-page="profil" onclick="navigateTo('profil')">
+                    <i class="fas fa-user"></i> Profil
+                </button>
+            </div>
+
+            <!-- CHAT FAB -->
+            <button class="chat-fab" id="chatFab">
+                <i class="fas fa-comment-dots"></i>
+                <span class="badge-chat">1</span>
+            </button>
+
+            <!-- CHAT MODAL -->
+            <div class="chat-modal" id="chatModal">
+                <div class="chat-header">
+                    <span><i class="fas fa-robot"></i> Asisten ECO-MIZAN</span>
+                    <button class="close-chat" id="closeChat"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-msg bot">🌿 Halo! Saya asisten ECO-MIZAN. Tanyakan seputar lingkungan, ekoteologi, atau cara setor sampah.</div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Tanyakan..." />
+                    <button id="chatSendBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+        </div><!-- /main -->
+
+    </div><!-- /app -->
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <script>
+        // ================================================================
+        //  LOGIKA APP
+        // ================================================================
+
+        // ----- DOM refs -----
+        const splash = document.getElementById('splash');
+        const login = document.getElementById('login');
+        const main = document.getElementById('main');
+
+        const btnSplash = document.getElementById('btnSplashStart');
+        const btnLogin = document.getElementById('btnLogin');
+        const loginNama = document.getElementById('loginNama');
+        const loginNim = document.getElementById('loginNim');
+        const loginRole = document.getElementById('loginRole');
+
+        const mainUserName = document.getElementById('mainUserName');
+        const mainUserNim = document.getElementById('mainUserNim');
+        const ecoPointEl = document.getElementById('ecoPoint');
+        const eaiScoreEl = document.getElementById('eaiScore');
+        const levelNameEl = document.getElementById('levelName');
+        const levelBadgeEl = document.getElementById('levelBadge');
+        const adminBadgeHeader = document.getElementById('adminBadgeHeader');
+        const adminMenuBtn = document.getElementById('adminMenuBtn');
+        const profileName = document.getElementById('profileName');
+        const profileNim = document.getElementById('profileNim');
+        const profilePoints = document.getElementById('profilePoints');
+        const profileEai = document.getElementById('profileEai');
+
+        const toastEl = document.getElementById('toast');
+        let toastTimer = null;
+
+        // ----- Chatbot -----
+        const chatFab = document.getElementById('chatFab');
+        const chatModal = document.getElementById('chatModal');
+        const closeChat = document.getElementById('closeChat');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+
+        // ----- State -----
+        let currentPoints = 1250;
+        let currentEai = 85;
+        let currentLevel = 7;
+        let isAdmin = false;
+        let currentUser = 'Inayah Azzahra';
+        let currentNim = '12345678';
+
+        const levelNames = {
+            1: 'Lv. 1 — Pemula Hijau',
+            2: 'Lv. 2 — Pejuang Alam',
+            3: 'Lv. 3 — Penjaga Hutan',
+            4: 'Lv. 4 — Pelindung Bumi',
+            5: 'Lv. 5 — Pejuang Hijau',
+            6: 'Lv. 6 — Penjaga Ekosistem',
+            7: 'Lv. 7 — Penjaga Bumi',
+            8: 'Lv. 8 — Pelindung Bumi',
+            9: 'Lv. 9 — Pahlawan Lingkungan',
+            10: 'Lv. 10 — Legenda Hijau'
+        };
+
+        // ----- Leaderboard data -----
+        const leaderboardData = {
+            nasional: [
+                { name: 'Ahmad F.', detail: 'UI · Teknik', points: 4850 },
+                { name: 'Siti R.', detail: 'UGM · Biologi', points: 4620 },
+                { name: 'Budi S.', detail: 'ITB · Kimia', points: 4310 },
+                { name: 'Dian P.', detail: 'UNAIR · Kesehatan', points: 3980 },
+                { name: 'Rina W.', detail: 'UNS · Pertanian', points: 3720 },
+                { name: 'Andi M.', detail: 'UNHAS · Teknik', points: 3550 },
+                { name: 'Citra L.', detail: 'UB · Ekonomi', points: 3340 },
+                { name: 'Fajar R.', detail: 'UNDIP · Hukum', points: 3100 },
+            ],
+            univ: [
+                { name: 'Inayah A.', detail: 'UINSA · Ekoteologi', points: 2840 },
+                { name: 'Budi S.', detail: 'UINSA · Teknik', points: 2650 },
+                { name: 'Citra P.', detail: 'UINSA · Biologi', points: 2420 },
+                { name: 'Dian R.', detail: 'UINSA · Ekonomi', points: 2180 },
+                { name: 'Eka N.', detail: 'UINSA · Hukum', points: 1950 },
+                { name: 'Fajar H.', detail: 'UINSA · Kimia', points: 1720 },
+            ],
+            fakultas: [
+                { name: 'Inayah A.', detail: 'Fak. Ekoteologi', points: 2840 },
+                { name: 'Budi S.', detail: 'Fak. Teknik', points: 2250 },
+                { name: 'Citra P.', detail: 'Fak. Biologi', points: 2120 },
+                { name: 'Dian R.', detail: 'Fak. Ekonomi', points: 1880 },
+                { name: 'Eka N.', detail: 'Fak. Hukum', points: 1650 },
+                { name: 'Fajar H.', detail: 'Fak. Kimia', points: 1420 },
+                { name: 'Gita M.', detail: 'Fak. Pertanian', points: 1280 },
+            ],
+            prodi: [
+                { name: 'Inayah A.', detail: 'Ekoteologi', points: 2840 },
+                { name: 'Budi S.', detail: 'Teknik Lingkungan', points: 2250 },
+                { name: 'Citra P.', detail: 'Biologi', points: 2120 },
+                { name: 'Dian R.', detail: 'Ekonomi', points: 1880 },
+                { name: 'Eka N.', detail: 'Hukum', points: 1650 },
+                { name: 'Fajar H.', detail: 'Kimia', points: 1420 },
+                { name: 'Gita M.', detail: 'Agribisnis', points: 1280 },
+                { name: 'Hendra W.', detail: 'Arsitektur', points: 1150 },
+            ]
+        };
+
+        // ----- Toast -----
+        function showToast(msg) {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 2500);
+        }
+
+        // ----- Screen transition -----
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(el => {
+                el.classList.remove('screen-visible');
+                el.classList.add('screen-hidden');
+            });
+            const target = document.getElementById(screenId);
+            target.classList.remove('screen-hidden');
+            target.classList.add('screen-visible');
+        }
+
+        // ----- Update UI -----
+        function updateUI() {
+            ecoPointEl.textContent = currentPoints.toLocaleString('id-ID');
+            eaiScoreEl.textContent = currentEai;
+            profilePoints.textContent = currentPoints.toLocaleString('id-ID');
+            profileEai.textContent = currentEai;
+
+            let lv = 1;
+            if (currentPoints >= 3000) lv = 10;
+            else if (currentPoints >= 2500) lv = 9;
+            else if (currentPoints >= 2000) lv = 8;
+            else if (currentPoints >= 1500) lv = 7;
+            else if (currentPoints >= 1200) lv = 6;
+            else if (currentPoints >= 900) lv = 5;
+            else if (currentPoints >= 600) lv = 4;
+            else if (currentPoints >= 300) lv = 3;
+            else if (currentPoints >= 100) lv = 2;
+            else lv = 1;
+
+            currentLevel = lv;
+            levelNameEl.textContent = levelNames[lv] || `Lv. ${lv} — Penjaga Bumi`;
+            levelBadgeEl.textContent = `🌱 ${currentPoints.toLocaleString()} pts`;
+
+            const eaiBadge = document.querySelector('.stat-card.eai .badge-green');
+            if (currentEai >= 90) {
+                eaiBadge.innerHTML = '<i class="fas fa-arrow-up"></i> +5%';
+                document.querySelector('.stat-card.eai .sub').textContent = 'Luar Biasa!';
+            } else if (currentEai >= 75) {
+                eaiBadge.innerHTML = '<i class="fas fa-arrow-up"></i> +3%';
+                document.querySelector('.stat-card.eai .sub').textContent = 'Sangat Baik';
+            } else if (currentEai >= 60) {
+                eaiBadge.innerHTML = '<i class="fas fa-minus"></i> 0%';
+                document.querySelector('.stat-card.eai .sub').textContent = 'Cukup';
+            } else {
+                eaiBadge.innerHTML = '<i class="fas fa-arrow-down"></i> -2%';
+                document.querySelector('.stat-card.eai .sub').textContent = 'Perlu Ditingkatkan';
+            }
+        }
+
+        // ----- Add points -----
+        function addPoints(points, eaiIncrement = 1, label = '') {
+            currentPoints += points;
+            currentEai = Math.min(100, currentEai + eaiIncrement);
+            updateUI();
+            if (label) showToast(`✅ ${label} +${points} Poin!`);
+            else showToast(`🎉 +${points} Poin!`);
+
+            const histContainer = document.getElementById('historyList');
+            const newItem = document.createElement('div');
+            newItem.className = 'history-item';
+            const desc = label || 'Setor sampah';
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            newItem.innerHTML = `
+                <div><div class="desc">${desc}</div><div class="detail"><i class="far fa-calendar-alt"></i> Baru saja, ${time}</div></div>
+                <div class="right"><span class="plus">+${points}</span></div>
+            `;
+            histContainer.insertBefore(newItem, histContainer.firstChild);
+            const allItems = histContainer.querySelectorAll('.history-item');
+            if (allItems.length > 5) {
+                allItems[allItems.length - 1].remove();
+            }
+        }
+
+        // ----- Trade reward -----
+        function tradeReward(name, cost) {
+            if (currentPoints >= cost) {
+                currentPoints -= cost;
+                updateUI();
+                showToast(`🎁 Berhasil menukar ${name}! -${cost} poin`);
+            } else {
+                showToast(`❌ Poin tidak cukup. Butuh ${cost} poin.`);
+            }
+        }
+
+        // ----- Navigasi halaman -----
+        function navigateTo(page) {
+            // Sembunyikan semua page
+            const pages = ['pageBeranda', 'pageLeaderboard', 'pageMarketplace', 'pageWasteIndex', 'pageAdmin', 'pageProfil'];
+            pages.forEach(p => {
+                const el = document.getElementById(p);
+                if (el) el.style.display = 'none';
+            });
+
+            // Tampilkan page yang dipilih
+            const map = {
+                'beranda': 'pageBeranda',
+                'leaderboard': 'pageLeaderboard',
+                'marketplace': 'pageMarketplace',
+                'wasteIndex': 'pageWasteIndex',
+                'admin': 'pageAdmin',
+                'profil': 'pageProfil',
+                'scan': 'pageBeranda',
+                'riwayat': 'pageBeranda'
+            };
+
+            const targetId = map[page] || 'pageBeranda';
+            const target = document.getElementById(targetId);
+            if (target) {
+                target.style.display = 'block';
+                // Scroll ke atas
+                document.getElementById('mainContent').scrollTop = 0;
+            }
+
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const navMap = {
+                'beranda': 'beranda',
+                'scan': 'scan',
+                'riwayat': 'riwayat',
+                'leaderboard': 'leaderboard',
+                'profil': 'profil'
+            };
+            const navKey = navMap[page] || 'beranda';
+            const navBtn = document.querySelector(`.nav-item[data-page="${navKey}"]`);
+            if (navBtn) navBtn.classList.add('active');
+
+            // Jika leaderboard, render data
+            if (page === 'leaderboard') {
+                renderLeaderboard('nasional');
+            }
+
+            // Jika wasteIndex, init map
+            if (page === 'wasteIndex') {
+                setTimeout(initMap, 200);
+            }
+
+            // Jika admin dan bukan admin, arahkan ke beranda
+            if (page === 'admin' && !isAdmin) {
+                navigateTo('beranda');
+                showToast('⛔ Akses admin diperlukan');
+            }
+
+            // Update header title
+            const headerTitles = {
+                'beranda': 'Beranda',
+                'leaderboard': 'Leaderboard',
+                'marketplace': 'Marketplace',
+                'wasteIndex': 'Indeks Sampah',
+                'admin': 'Dashboard Admin',
+                'profil': 'Profil Saya'
+            };
+            document.querySelector('.user-text .name').textContent = headerTitles[page] || currentUser;
+        }
+
+        // ----- Leaderboard render -----
+        function renderLeaderboard(tab) {
+            const data = leaderboardData[tab] || leaderboardData.nasional;
+            const container = document.getElementById('lbContent');
+            let html = '';
+            data.forEach((item, idx) => {
+                let rankClass = 'top';
+                if (idx === 0) rankClass = 'gold';
+                else if (idx === 1) rankClass = 'silver';
+                else if (idx === 2) rankClass = 'bronze';
+                const initial = item.name.charAt(0);
+                html += `
+                    <div class="lb-item">
+                        <div class="lb-rank ${rankClass}">${idx + 1}</div>
+                        <div class="lb-avatar">${initial}</div>
+                        <div class="lb-info">
+                            <div class="name">${item.name}</div>
+                            <div class="detail">${item.detail}</div>
+                        </div>
+                        <div class="lb-points">${item.points.toLocaleString()}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // Update tab aktif
+            document.querySelectorAll('.lb-tab').forEach(el => {
+                el.classList.toggle('active', el.dataset.lb === tab);
+            });
+        }
+
+        // ----- Map (Leaflet) -----
+        let mapInitialized = false;
+        let mapInstance = null;
+
+        function initMap() {
+            const container = document.getElementById('mapContainer');
+            if (!container) return;
+
+            // Jika sudah diinisialisasi, resize
+            if (mapInstance) {
+                setTimeout(() => mapInstance.invalidateSize(), 100);
+                return;
+            }
+
+            try {
+                mapInstance = L.map('mapContainer').setView([-7.2575, 112.7521], 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
+                    maxZoom: 19,
+                }).addTo(mapInstance);
+
+                // Smart Bin locations
+                const bins = [
+                    { lat: -7.2575, lng: 112.7521, name: 'Smart Bin A - Rektorat', status: 'Aktif' },
+                    { lat: -7.2590, lng: 112.7505, name: 'Smart Bin B - Fak. Teknik', status: 'Hampir Penuh' },
+                    { lat: -7.2560, lng: 112.7540, name: 'Smart Bin C - Asrama', status: 'Aktif' },
+                    { lat: -7.2605, lng: 112.7515, name: 'Smart Bin D - Fak. Ekonomi', status: 'Perlu Dikosongkan' },
+                    { lat: -7.2550, lng: 112.7535, name: 'Smart Bin E - Perpustakaan', status: 'Aktif' },
+                    { lat: -7.2585, lng: 112.7490, name: 'Smart Bin F - Fak. Biologi', status: 'Aktif' },
+                ];
+
+                bins.forEach(bin => {
+                    const color = bin.status === 'Aktif' ? '#2e7d32' :
+                        bin.status === 'Hampir Penuh' ? '#ffb300' : '#e53935';
+                    const marker = L.circleMarker([bin.lat, bin.lng], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(mapInstance);
+                    marker.bindPopup(`<b>${bin.name}</b><br>Status: ${bin.status}`);
+                });
+
+                // Tambahkan marker untuk lokasi dengan sampah terbanyak
+                const wasteSpots = [
+                    { lat: -7.2575, lng: 112.7521, name: 'Rektorat - 420kg', type: 'sampah' },
+                    { lat: -7.2590, lng: 112.7505, name: 'Teknik - 380kg', type: 'sampah' },
+                    { lat: -7.2560, lng: 112.7540, name: 'Asrama - 310kg', type: 'sampah' },
+                ];
+                wasteSpots.forEach(spot => {
+                    L.circleMarker([spot.lat, spot.lng], {
+                        radius: 12,
+                        fillColor: '#e53935',
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 0.7,
+                        fillOpacity: 0.4
+                    }).addTo(mapInstance).bindPopup(`<b>${spot.name}</b>`);
+                });
+
+                mapInitialized = true;
+                setTimeout(() => mapInstance.invalidateSize(), 300);
+            } catch (e) {
+                console.log('Map error:', e);
+                container.innerHTML =
+                    '<div style="padding:40px;text-align:center;color:#6a8a6a;font-size:13px;"><i class="fas fa-map fa-2x" style="margin-bottom:8px;display:block;"></i>Peta Smart Bin & Lokasi Sampah<br><span style="font-size:11px;">Gunakan peta untuk melihat lokasi Smart Bin dan area dengan sampah terbanyak.</span></div>';
+            }
+        }
+
+        // ----- Login -----
+        function doLogin() {
+            const nama = loginNama.value.trim() || 'Pengguna';
+            const nim = loginNim.value.trim() || '12345678';
+            const role = loginRole.value;
+
+            currentUser = nama;
+            currentNim = nim;
+            isAdmin = (role === 'admin');
+
+            // Update UI
+            mainUserName.textContent = currentUser;
+            mainUserNim.textContent = `NIM: ${currentNim}`;
+            profileName.textContent = currentUser;
+            profileNim.textContent = `NIM: ${currentNim}`;
+
+            if (isAdmin) {
+                adminBadgeHeader.style.display = 'inline';
+                adminMenuBtn.style.display = 'flex';
+                showToast('👋 Selamat datang, Admin!');
+            } else {
+                adminBadgeHeader.style.display = 'none';
+                adminMenuBtn.style.display = 'none';
+                showToast(`👋 Selamat datang, ${currentUser}!`);
+            }
+
+            showScreen('main');
+            navigateTo('beranda');
+
+            // Reset chat
+            chatMessages.innerHTML = `
+                <div class="chat-msg bot">🌿 Halo ${currentUser}! Saya asisten ECO-MIZAN. Tanyakan seputar lingkungan, ekoteologi, atau cara setor sampah.</div>
+            `;
+
+            // Initialize map if needed
+            setTimeout(initMap, 500);
+        }
+
+        // ----- Event listeners -----
+        btnSplash.addEventListener('click', () => showScreen('login'));
+
+        btnLogin.addEventListener('click', doLogin);
+        document.querySelectorAll('#login input').forEach(inp => {
+            inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+        });
+
+        // Scan QR
+        document.getElementById('scanQrBtn').addEventListener('click', function() {
+            showToast('📷 Membuka kamera untuk scan QR...');
+            setTimeout(() => {
+                addPoints(5, 1, 'Botol PET (Scan QR)');
+            }, 1200);
+        });
+
+        // Manual NIM
+        document.getElementById('manualNimBtn').addEventListener('click', function() {
+            const nim = prompt('📝 Masukkan NIM Anda:', currentNim);
+            if (nim && nim.trim() !== '') {
+                mainUserNim.textContent = `NIM: ${nim.trim()}`;
+                profileNim.textContent = `NIM: ${nim.trim()}`;
+                showToast(`✅ NIM ${nim.trim()} terverifikasi.`);
+                addPoints(3, 0, 'Verifikasi NIM');
+            } else {
+                showToast('❌ Input NIM dibatalkan.');
+            }
+        });
+
+        // More history
+        document.getElementById('moreHistory').addEventListener('click', function() {
+            showToast('📋 Menampilkan semua riwayat setor...');
+        });
+
+        // Point card click
+        document.getElementById('pointCard').addEventListener('click', function() {
+            addPoints(10, 1, 'Bonus harian');
+        });
+
+        // EAI card click
+        document.getElementById('eaiCard').addEventListener('click', function() {
+            currentEai = Math.min(100, currentEai + 2);
+            updateUI();
+            showToast(`📈 EAI meningkat ke ${currentEai}`);
+        });
+
+        // Level banner click
+        document.getElementById('levelBanner').addEventListener('click', function() {
+            showToast('🏅 Kuis setor: selesaikan tantangan harian!');
+            addPoints(5, 0, 'Kuis harian');
+        });
+
+        // Avatar click -> profil
+        document.getElementById('avatarBtn').addEventListener('click', function() {
+            navigateTo('profil');
+        });
+
+        // ----- Leaderboard tabs -----
+        document.querySelectorAll('.lb-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const key = this.dataset.lb;
+                renderLeaderboard(key);
+            });
+        });
+
+        // ----- Chatbot -----
+        chatFab.addEventListener('click', function() {
+            chatModal.classList.toggle('open');
+            if (chatModal.classList.contains('open')) {
+                chatInput.focus();
+                document.querySelector('.chat-fab .badge-chat').style.display = 'none';
+            }
+        });
+
+        closeChat.addEventListener('click', function() {
+            chatModal.classList.remove('open');
+        });
+
+        function sendChatMessage() {
+            const msg = chatInput.value.trim();
+            if (!msg) return;
+            const userDiv = document.createElement('div');
+            userDiv.className = 'chat-msg user';
+            userDiv.textContent = msg;
+            chatMessages.appendChild(userDiv);
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            setTimeout(() => {
+                let reply = 'Terima kasih! ';
+                const lower = msg.toLowerCase();
+                if (lower.includes('sampah') || lower.includes('setor') || lower.includes('botol')) {
+                    reply += 'Anda bisa setor sampah dengan scan QR di mesin RVM atau input NIM manual. Setiap setor menambah Eco Point dan EAI.';
+                } else if (lower.includes('ekoteologi') || lower.includes('islam') || lower.includes('mizan')) {
+                    reply += 'ECO-MIZAN berbasis ekoteologi Islam, mengintegrasikan mīzān (keseimbangan) dan khalifah fil ardh.';
+                } else if (lower.includes('poin') || lower.includes('reward') || lower.includes('market')) {
+                    reply += 'Poin bisa ditukar di Marketplace dengan voucher, merchandise, atau produk daur ulang dari mahasiswa!';
+                } else if (lower.includes('eai')) {
+                    reply += 'EAI (Environmental Action Index) mengukur partisipasi ramah lingkungan Anda. Semakin tinggi, semakin baik!';
+                } else if (lower.includes('leaderboard')) {
+                    reply += 'Lihat peringkat di Leaderboard! Ada Nasional, Universitas, Fakultas, dan Prodi.';
+                } else if (lower.includes('peta') || lower.includes('map') || lower.includes('lokasi')) {
+                    reply += 'Cek Indeks Sampah untuk melihat peta Smart Bin dan lokasi dengan sampah terbanyak.';
+                } else if (lower.includes('halo') || lower.includes('hai') || lower.includes('assalam')) {
+                    reply = 'Assalamu\'alaikum! 🌿 Senang bisa membantu. Ada yang bisa saya bantu tentang ECO-MIZAN?';
+                } else {
+                    reply += 'Saya siap membantu pertanyaan seputar ECO-MIZAN, pengelolaan sampah, atau ekoteologi Islam.';
+                }
+                const botDiv = document.createElement('div');
+                botDiv.className = 'chat-msg bot';
+                botDiv.textContent = reply;
+                chatMessages.appendChild(botDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 500);
+        }
+
+        chatSendBtn.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+        // ----- Init -----
+        updateUI();
+        renderLeaderboard('nasional');
+
+        // Siapkan map saat wasteIndex pertama kali dibuka
+        let mapOpened = false;
+        const origNavigate = navigateTo;
+        navigateTo = function(page) {
+            origNavigate(page);
+            if (page === 'wasteIndex' && !mapOpened) {
+                mapOpened = true;
+                setTimeout(initMap, 300);
+            }
+            if (page === 'wasteIndex') {
+                setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 400);
+            }
+        };
+
+        // Inisialisasi map setelah login
+        setTimeout(() => {
+            if (document.getElementById('mapContainer')) {
+                initMap();
+            }
+        }, 1000);
+
+        console.log('🌱 ECO-MIZAN v3.0 — Smart Environmental Action System');
+        console.log('📌 Fitur: Dashboard Admin, Marketplace, Leaderboard, Indeks Sampah, Smart Bin Map');
+        console.log('🤖 Chatbot siap membantu!');
+    </script>
+
+</body>
+</html>
